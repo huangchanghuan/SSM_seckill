@@ -30,7 +30,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<c:forEach var="sk" items="${list }">
+						<c:forEach var="sk" items="${list}">
 						<tr>
 							<td>${sk.name }</td>
 							<td>${sk.number }</td>

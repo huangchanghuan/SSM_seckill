@@ -2,13 +2,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.it</groupId>
-	<artifactId>shopmiaosha</artifactId>
+	<artifactId>seckill</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>shopmiaosha Maven Webapp</name>
+	<name>seckill Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<org.springframework.version>4.2.5.RELEASE</org.springframework.version>
+
+<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
 	</properties>
 	<dependencies>
 		<!-- 使用junit4 -->
@@ -140,6 +144,6 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>shopmiaosha</finalName>
+		<finalName>seckill</finalName>
 	</build>
 </project>
