@@ -37,7 +37,7 @@ public class SeckillServiceImpl implements SeckillService {
 
 	@Override
 	public List<Seckill> getSeckillList() {
-		return seckillDao.queryAll(0, 50);
+		return seckillDao.queryAll(0, 4);
 	}
 
 	@Override
@@ -94,23 +94,13 @@ public class SeckillServiceImpl implements SeckillService {
 		Date nowTime = new Date();
 		try {
 		// 减库存
-			System.out.println("事务1update锁住前number"+seckillDao.queryById(seckillId).getNumber());
 		int updateCount = seckillDao.reduceNumber(seckillId, nowTime);
-		    System.out.println("事务1update锁住后number"+seckillDao.queryById(seckillId).getNumber());
 		if(updateCount<=0){
 			//没有更新，秒杀结束
-
 			throw new SeckillCloseException("seckill is closed");
 		}else{
-			
-			for(int i=1;i<10;i++){
-				Thread.sleep(1000);
-				System.out.println("1执行完upadate语句:没有insert"+(i+1)*1000);
-			}
-			
 			//记录购买行为
 			int insertCount=successKilledDao.insertSuccessKilled(seckillId, userPhone);
-			System.out.println("1执行完insert语句==================");
 			//唯一seckillId+userPhone,检查重复
 			if(insertCount<=0){
 				//重复秒杀
@@ -118,7 +108,6 @@ public class SeckillServiceImpl implements SeckillService {
 			}else{
 				//秒杀成功
 				SuccessKilled successKilled=successKilledDao.queryByIdWithSeckill(seckillId,userPhone);
-				System.out.println("1执行完秒杀成功==================");
 				return new SeckillExecution(seckillId,SeckillStatEnum.SUCCESS, successKilled);			
 			}
 		}
@@ -133,52 +122,4 @@ public class SeckillServiceImpl implements SeckillService {
 		}
 	}
 
-	@Transactional
-	public SeckillExecution executeSeckill1(long seckillId, long userPhone,
-			String md5) throws SeckillException, SeckillCloseException,
-			RepeatKillException {
-		if (md5 == null || !md5.equals(getMD5(seckillId))) {
-			throw new SeckillException("seckill data rewrite");
-		}
-		// 执行秒杀逻辑：减库存+记录购买行为
-		Date nowTime = new Date();
-		try {
-		// 减库存
-			for(int i=1;i<5;i++){
-				Thread.sleep(1000);
-				System.out.println("2准备update:"+(i+1)*1000);
-			}
-		System.out.println("事务1update锁住，事务2查询记录number"+seckillDao.queryById(seckillId).getNumber());
-		int updateCount = seckillDao.reduceNumber(seckillId, nowTime);
-		System.out.println("事务2update锁住时候number"+seckillDao.queryById(seckillId).getNumber());
-		System.out.println("2执行完update语句==================");
-		if(updateCount<=0){
-			//没有更新，秒杀结束
-			throw new SeckillCloseException("seckill is closed");
-		}else{
-			//记录购买行为
-			int insertCount=successKilledDao.insertSuccessKilled(seckillId, userPhone);
-			System.out.println("2执行完insert语句==================");
-			//唯一seckillId+userPhone,检查重复
-			if(insertCount<=0){
-				//重复秒杀
-				throw new RepeatKillException("seckill repeated");
-			}else{
-				//秒杀成功
-				SuccessKilled successKilled=successKilledDao.queryByIdWithSeckill(seckillId,userPhone);
-				System.out.println("2执行完秒杀成功==================");
-				return new SeckillExecution(seckillId,SeckillStatEnum.SUCCESS, successKilled);			
-			}
-		}
-		}catch(SeckillCloseException e1){
-			throw e1;
-		}catch(RepeatKillException e2){
-			throw e2;
-		} catch (Exception e) {
-//			logger.error(e.getMessage(),e);
-			//所有编译器异常转化成运行异常
-			throw new SeckillException("seckill inner error:"+e.getMessage());
-		}
-	}
-	
 }
