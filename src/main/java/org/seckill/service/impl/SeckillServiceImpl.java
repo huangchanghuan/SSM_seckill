@@ -1,8 +1,5 @@
 package org.seckill.service.impl;
 
-import java.util.Date;
-import java.util.List;
-
 import org.seckill.dao.SeckillDao;
 import org.seckill.dao.SuccessKilledDao;
 import org.seckill.dto.Exposer;
@@ -14,11 +11,13 @@ import org.seckill.exception.RepeatKillException;
 import org.seckill.exception.SeckillCloseException;
 import org.seckill.exception.SeckillException;
 import org.seckill.service.SeckillService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * 
@@ -100,6 +99,7 @@ public class SeckillServiceImpl implements SeckillService {
 		    System.out.println("事务1update锁住后number"+seckillDao.queryById(seckillId).getNumber());
 		if(updateCount<=0){
 			//没有更新，秒杀结束
+
 			throw new SeckillCloseException("seckill is closed");
 		}else{
 			
