@@ -1,8 +1,5 @@
 package org.seckill.web;
 
-import java.util.Date;
-import java.util.List;
-
 import org.seckill.dto.Exposer;
 import org.seckill.dto.SeckillExecution;
 import org.seckill.dto.SeckillResult;
@@ -12,15 +9,13 @@ import org.seckill.exception.RepeatKillException;
 import org.seckill.exception.SeckillCloseException;
 import org.seckill.exception.SeckillException;
 import org.seckill.service.SeckillService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * 
@@ -40,6 +35,7 @@ public class SeckillController {
 		//获取列表页
 		List<Seckill> list=seckillService.getSeckillList();
 		model.addAttribute("list",list);
+		System.out.println("这是怎么回事呢");
 		//List.jsp+model=ModelAndView
 		return "list";//  /WEB-INF/jsp/"list".jsp
 	}

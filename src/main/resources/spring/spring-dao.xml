@@ -45,6 +45,4 @@
 		<property name="sqlSessionFactoryBeanName" value="SqlSessionFactory" />
 		<property name="basePackage" value="org.seckill.dao" />
 	</bean>
-	
-
 </beans>
