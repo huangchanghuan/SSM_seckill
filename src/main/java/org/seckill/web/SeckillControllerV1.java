@@ -9,7 +9,6 @@ import org.seckill.exception.RepeatKillException;
 import org.seckill.exception.SeckillCloseException;
 import org.seckill.exception.SeckillException;
 import org.seckill.service.SeckillService;
-import org.seckill.util.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,19 +18,18 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 
+ *
  * @author Peter  2016-9-3下午5:02:48
  *
  */
 @Controller
-@ApiVersion(001)
-@RequestMapping("/{version}/seckill")//url:/项目/模块/资源/{id}/细分  seckill/list
-public class SeckillControllerV001 {
+@RequestMapping("/v1/seckill")//url:/项目/模块/资源/{id}/细分  seckill/list
+public class SeckillControllerV1 {
 //	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
+
 	@Autowired
 	private SeckillService seckillService;
-	
+
 	@RequestMapping(value="/list",method=RequestMethod.GET)
 	public String List(Model model){
 		//获取列表页
@@ -41,7 +39,7 @@ public class SeckillControllerV001 {
 		//List.jsp+model=ModelAndView
 		return "list";//  /WEB-INF/jsp/"list".jsp
 	}
-	
+
 	@RequestMapping(value="/{seckillId}/detail",method=RequestMethod.GET)
 	public String detail(@PathVariable("seckillId")Long seckillId,Model model){
 		if(seckillId==null){
@@ -54,7 +52,7 @@ public class SeckillControllerV001 {
 		model.addAttribute("seckill", seckill);
 		return "detail";
 	}
-	
+
 	//ajax json
 	@RequestMapping(value="/{seckillId}/exposer",
 			method=RequestMethod.GET,
@@ -71,7 +69,7 @@ public class SeckillControllerV001 {
 		}
 		return result;
 	}
-	
+
 	@RequestMapping(value="/{seckillId}/{md5}/execution",
 			method=RequestMethod.POST,
 			produces={"application/json;charset=UTF-8"})
@@ -98,7 +96,7 @@ public class SeckillControllerV001 {
 			return new SeckillResult<SeckillExecution>(true, execution);
 		}
 	}
-	
+
 	@RequestMapping(value="/time/now",params ={"username=peter","password=peter"} ,method={RequestMethod.POST,RequestMethod.DELETE,RequestMethod.GET})
 	@ResponseBody
 	public SeckillResult<Long> time(){

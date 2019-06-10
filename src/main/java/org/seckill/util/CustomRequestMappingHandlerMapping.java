@@ -1,81 +1,57 @@
 package org.seckill.util;
 
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.web.servlet.mvc.condition.RequestCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.Method;
-import java.util.Comparator;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
-    /**
-     * 类级别的版本注解
-     * @param handlerType
-     * @return
-     */
+    private static final Logger log = LoggerFactory.getLogger(CustomRequestMappingHandlerMapping.class);
+    // 路径中版本的前缀， 这里用 /v[1-9]/的形式
+    private final static Pattern VERSION_PREFIX_PATTERN = Pattern.compile("v(\\d+)/");
     @Override
-    protected RequestCondition<ApiVesrsionCondition> getCustomTypeCondition(Class<?> handlerType) {
-        ApiVersion apiVersion = AnnotationUtils.findAnnotation(handlerType, ApiVersion.class);
-        return createCondition(apiVersion);
-    }
-
-    /**
-     * 方法级别的版本注解
-     * @param method
-     * @return
-     */
-    @Override
-    protected RequestCondition<ApiVesrsionCondition> getCustomMethodCondition(Method method) {
-        ApiVersion apiVersion = AnnotationUtils.findAnnotation(method, ApiVersion.class);
-        return createCondition(apiVersion);
-    }
-    
-    private RequestCondition<ApiVesrsionCondition> createCondition(ApiVersion apiVersion) {
-        return apiVersion == null ? null : new ApiVesrsionCondition(apiVersion.value());
-    }
-
-    /**
-     * Provide a Comparator to sort RequestMappingInfos matched to a request.
-     * 排序:首先按版本排序,版本排序,再按默认排序
-     */
-    @Override
-    protected Comparator<RequestMappingInfo> getMappingComparator(final HttpServletRequest request) {
-        return new Comparator<RequestMappingInfo>() {
-            @Override
-            public int compare(RequestMappingInfo info1, RequestMappingInfo info2) {
-                //先按版本进行排序
-                int versionResult = compareVersion(info1, info2);
-                if (versionResult!= 0) {
-                    return versionResult;
-                }
-                //再按默认排序
-                return info1.compareTo(info2, request);
-            }
-            //版本条件进行排序
-            private int compareVersion(RequestMappingInfo info1, RequestMappingInfo info2){
-                ApiVesrsionCondition version1= (ApiVesrsionCondition) info1.getCustomCondition();
-                ApiVesrsionCondition version2= (ApiVesrsionCondition) info2.getCustomCondition();
-                //优选按版本排序
-                if (version1== null && version2== null) {
-                    return 0;
-                }
-                else if (version1 == null) {
-                    return 1;
-                }
-                else if (version2 == null) {
-                    return -1;
-                }
-                else {
-                    Class<?> clazz = version1.getClass();
-                    Class<?> otherClazz = version2.getClass();
-                    if (!clazz.equals(otherClazz)) {
-                        throw new ClassCastException("Incompatible request conditions: " + clazz + " and " + otherClazz);
-                    }
-                    return version1.compareTo(version2, request);
+     protected HandlerMethod handleNoMatch(Set<RequestMappingInfo> requestMappingInfos,
+                                           String lookupPath, HttpServletRequest request) throws ServletException {
+        //没有匹配到路径,则进行版本降级,继续匹配; 如果已经是最低版本,则执行super.handleNoMatch(requestMappingInfos, lookupPath, request)
+        //不存在版本号
+        log.info("接口版本降级处理");
+        Matcher m = VERSION_PREFIX_PATTERN.matcher(request.getRequestURL());
+        //存在版本号
+        if(m.find()){
+            //路径的版本号
+            Integer version = Integer.valueOf(m.group(1));
+            log.info("存在版本号:{}",version);
+            //已是最小版本,完成所有版本降级匹配,未找到
+            if(version == 1) {
+                return customerHandleNoMatch(requestMappingInfos, lookupPath, request);
+            }else {
+                //不是最小版本,重组lookupPath
+                lookupPath = lookupPath.replace(version.toString(), String.valueOf(version-1));
+                log.info("降级后的lookupPath:{}",lookupPath);
+                try {
+                    return lookupHandlerMethod(lookupPath, request);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error("接口版本降级异常:{}",e.getMessage());
                 }
             }
-        };
+        }else {
+            //不存在版本号,获取最新版本
+            log.info("不存在版本号");
+        }
+        return null;
+     }
+
+    protected HandlerMethod customerHandleNoMatch(Set<RequestMappingInfo> requestMappingInfos,
+                                          String lookupPath, HttpServletRequest request) throws ServletException {
+        return super.handleNoMatch(requestMappingInfos, lookupPath, request);
     }
+
 }
